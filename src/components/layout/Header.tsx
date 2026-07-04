@@ -1,6 +1,6 @@
 export function Header() {
   return (
-    <header className="px-6 sm:px-12 pt-8 sm:pt-10 pb-6 flex flex-col sm:flex-row items-start justify-between gap-4 sm:gap-0">
+    <header className="px-6 sm:px-12 pt-8 sm:pt-10 pb-6 flex flex-col sm:flex-row items-start justify-between gap-4 sm:gap-0 flex-shrink-0">
       <h1 className="font-['Instrument_Serif',serif] text-[32px] sm:text-[38px] leading-none text-black not-italic">
         MORPHEUS (ARCHIVE)*
       </h1>

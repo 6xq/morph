@@ -8,10 +8,12 @@ export default function App() {
   const [modalOpen, setModalOpen] = useState(false)
 
   return (
-    <div className="min-h-screen bg-[#f9f9f9]">
+    <div className="h-screen flex flex-col bg-[#f9f9f9]">
       <Header />
-      <main className="pb-16">
-        <ArchiveGrid />
+      <main className="flex-1 overflow-y-auto">
+        <div className="pb-16">
+          <ArchiveGrid />
+        </div>
       </main>
       <Footer onSendClick={() => setModalOpen(true)} />
 
