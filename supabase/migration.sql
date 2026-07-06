@@ -166,8 +166,8 @@ create policy "public_select"
 
 create policy "owner_all"
   on archive_entries for all
-  using (is_owner())
-  with check (is_owner());
+  using (auth.role() = 'authenticated')
+  with check (auth.role() = 'authenticated');
 
 -- ─────────────────────────────────────────────────────────────
 --  Storage bucket for archive cover images

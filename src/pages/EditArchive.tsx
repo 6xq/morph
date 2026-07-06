@@ -182,7 +182,8 @@ export function EditArchive() {
       resetForm()
       fetchEntries()
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save")
+      const msg = err instanceof Error ? err.message : typeof err === "object" && err && "message" in err ? String((err as any).message) : "Failed to save"
+      setError(msg)
     }
     setSaving(false)
   }
@@ -196,7 +197,8 @@ export function EditArchive() {
       if (error) throw error
       setEntries((prev) => prev.filter((e) => e.id !== id))
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete")
+      const msg = err instanceof Error ? err.message : typeof err === "object" && err && "message" in err ? String((err as any).message) : "Failed to delete"
+      setError(msg)
     }
   }
 

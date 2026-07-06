@@ -1,13 +1,11 @@
--- Seed: insert fallback archive entries & update owner
+-- Seed: insert fallback archive entries & update archive_entries RLS
 
--- 1. Update is_owner to include inbox@morph.him
-create or replace function is_owner()
-returns boolean
-language sql
-stable
-as $$
-  select auth.jwt() ->> 'email' in ('mohamedp771@gmail.com', 'inbox@morph.him');
-$$;
+-- 1. Fix archive_entries RLS to use auth.role() instead of is_owner()
+drop policy if exists "owner_all" on archive_entries;
+create policy "owner_all"
+  on archive_entries for all
+  using (auth.role() = 'authenticated')
+  with check (auth.role() = 'authenticated');
 
 -- 2. Insert the 8 fallback entries (idempotent — skips if title already exists)
 insert into archive_entries (title, date, image_url, category, position, link, description)
