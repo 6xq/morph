@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { Link } from "react-router"
 import { requireSupabase } from "@/lib/supabase"
 import type { AuthSession } from "@supabase/supabase-js"
@@ -88,10 +88,12 @@ export function EditArchive() {
   const [entries, setEntries] = useState<ArchiveEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [error, setError] = useState("")
   const [form, setForm] = useState(emptyForm)
   const [editingId, setEditingId] = useState<number | null>(null)
   const [showForm, setShowForm] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     const sb = requireSupabase()
@@ -198,6 +200,28 @@ export function EditArchive() {
     }
   }
 
+  async function handleUpload(file: File) {
+    if (!file) return
+    setUploading(true)
+    setError("")
+    try {
+      const sb = requireSupabase()
+      const ext = file.name.split(".").pop()?.toLowerCase() || "png"
+      const path = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`
+      const { error: uploadErr } = await sb.storage
+        .from("archive-images")
+        .upload(path, file, { contentType: file.type })
+      if (uploadErr) throw uploadErr
+      const { data: { publicUrl } } = sb.storage
+        .from("archive-images")
+        .getPublicUrl(path)
+      setForm((prev) => ({ ...prev, image_url: publicUrl }))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Upload failed")
+    }
+    setUploading(false)
+  }
+
   async function move(id: number, direction: "up" | "down") {
     const idx = entries.findIndex((e) => e.id === id)
     if (idx < 0) return
@@ -262,9 +286,31 @@ export function EditArchive() {
                   className={`${mono} border border-black/20 px-3 py-2 bg-white text-black text-[13px]`} />
               </div>
               <div className="flex flex-col gap-1">
-                <label className={`${mono} text-[11px] uppercase tracking-wider text-black/40`}>Image URL</label>
-                <input value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })}
-                  className={`${mono} border border-black/20 px-3 py-2 bg-white text-black text-[13px]`} />
+                <label className={`${mono} text-[11px] uppercase tracking-wider text-black/40`}>Image</label>
+                <div className="flex gap-2 items-center">
+                  <input value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })}
+                    placeholder="Paste URL or upload a file"
+                    className={`${mono} flex-1 border border-black/20 px-3 py-2 bg-white text-black text-[13px]`} />
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/gif"
+                    className="hidden"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0]
+                      if (f) handleUpload(f)
+                      e.target.value = ""
+                    }}
+                  />
+                  <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading}
+                    className={`${mono} text-[11px] px-3 py-2 border border-black/20 hover:bg-black/5 disabled:opacity-50 transition-colors shrink-0`}>
+                    {uploading ? "..." : "Upload"}
+                  </button>
+                </div>
+                {form.image_url && (
+                  <img src={form.image_url} alt="preview"
+                    className="mt-2 w-20 h-24 object-cover bg-[#f1f1f1] border border-black/10" />
+                )}
               </div>
               <div className="flex flex-col gap-1">
                 <label className={`${mono} text-[11px] uppercase tracking-wider text-black/40`}>Category</label>

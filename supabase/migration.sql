@@ -168,3 +168,41 @@ create policy "owner_all"
   on archive_entries for all
   using (is_owner())
   with check (is_owner());
+
+-- ─────────────────────────────────────────────────────────────
+--  Storage bucket for archive cover images
+-- ─────────────────────────────────────────────────────────────
+
+-- 13. Create bucket (safe to re-run)
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'archive-images',
+  'archive-images',
+  true,
+  5242880,
+  array['image/png', 'image/jpeg', 'image/webp', 'image/gif']
+)
+on conflict (id) do nothing;
+
+-- 14. Drop existing storage policies so this script is safe to re-run
+drop policy if exists "Public read" on storage.objects;
+drop policy if exists "Owner upload" on storage.objects;
+drop policy if exists "Owner update" on storage.objects;
+drop policy if exists "Owner delete" on storage.objects;
+
+-- 15. Storage RLS policies
+create policy "Public read"
+  on storage.objects for select
+  using (bucket_id = 'archive-images');
+
+create policy "Owner upload"
+  on storage.objects for insert
+  with check (bucket_id = 'archive-images' and auth.role() = 'authenticated');
+
+create policy "Owner update"
+  on storage.objects for update
+  using (bucket_id = 'archive-images' and auth.role() = 'authenticated');
+
+create policy "Owner delete"
+  on storage.objects for delete
+  using (bucket_id = 'archive-images' and auth.role() = 'authenticated');
