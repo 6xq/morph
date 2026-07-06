@@ -1,6 +1,7 @@
-import { useRef, useEffect } from "react"
+import { useRef, useEffect, useState } from "react"
 import { gsap } from "@/lib/gsap"
 import { ArchiveCard } from "@/components/ui/ArchiveCard"
+import { requireSupabase } from "@/lib/supabase"
 import imgRect2 from "@/imports/Home/c5c97b06420f9fb37ab8ad36eaa0d81317c92607.png"
 import imgRect3 from "@/imports/Home/cb3fcca203ce3df2ca7b001f7ae274a76797263c.png"
 import imgRect4 from "@/imports/Home/fa2c65584b671e16c0ccd2d10fb7fc317eb4d5bf.png"
@@ -10,7 +11,7 @@ import imgRect7 from "@/imports/Home/640c959c80bdb4188917f57a241536ae067907db.pn
 import imgRect8 from "@/imports/Home/0180d31d32607011a14723c8c850b464f5c76f12.png"
 import imgRect9 from "@/imports/Home/d6ddb872a3bb560570256771d1a4982aad7b85b9.png"
 
-const ARCHIVE_ITEMS = [
+const FALLBACK_ITEMS = [
   { title: "WENDYKURK / SOFT MEAT", date: "10 June, 2026", img: imgRect2 },
   { title: "FELVIDEK", date: "8 June, 2026", img: imgRect4 },
   { title: "MAUVAIS SANG 1986 / LEOS CARAX", date: "9 June, 2026", img: imgRect6 },
@@ -21,8 +22,27 @@ const ARCHIVE_ITEMS = [
   { title: "THE MYRIAD FORM / THE MYRIAD FORM", date: "30 January, 2026", img: imgRect9 },
 ]
 
+type DisplayItem = { title: string; date: string; img: string }
+
 export function ArchiveGrid() {
   const gridRef = useRef<HTMLDivElement>(null)
+  const [items, setItems] = useState<DisplayItem[]>(FALLBACK_ITEMS)
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const sb = requireSupabase()
+        const { data, error } = await sb
+          .from("archive_entries")
+          .select("title, date, image_url")
+          .order("position", { ascending: true })
+        if (!error && data && data.length > 0) {
+          setItems(data.map((e) => ({ title: e.title, date: e.date || "", img: e.image_url || "" })))
+        }
+      } catch {}
+    }
+    load()
+  }, [])
 
   useEffect(() => {
     const cards = gridRef.current?.querySelectorAll(".archive-card")
@@ -36,12 +56,12 @@ export function ArchiveGrid() {
         }
       )
     }
-  }, [])
+  }, [items])
 
   return (
     <section ref={gridRef} className="pl-6 sm:pl-12 pr-8 sm:pr-16 lg:pr-32">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-        {ARCHIVE_ITEMS.map((item) => (
+        {items.map((item) => (
           <div key={item.title} className="archive-card">
             <ArchiveCard {...item} />
           </div>

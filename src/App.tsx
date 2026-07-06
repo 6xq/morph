@@ -1,10 +1,13 @@
 import { useState } from "react"
+import { Routes, Route } from "react-router"
 import { Header } from "@/components/layout/Header"
 import { Footer } from "@/components/layout/Footer"
 import { ArchiveGrid } from "@/components/sections/ArchiveGrid"
 import { SendForm } from "@/components/sections/SendForm"
+import { Inbox } from "@/pages/Inbox"
+import { EditArchive } from "@/pages/EditArchive"
 
-export default function App() {
+function Home() {
   const [modalOpen, setModalOpen] = useState(false)
 
   return (
@@ -26,5 +29,15 @@ export default function App() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/morpheus-inbox" element={<Inbox />} />
+      <Route path="/edit-archive" element={<EditArchive />} />
+    </Routes>
   )
 }
