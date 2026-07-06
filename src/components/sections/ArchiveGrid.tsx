@@ -11,7 +11,9 @@ import imgRect7 from "@/imports/Home/640c959c80bdb4188917f57a241536ae067907db.pn
 import imgRect8 from "@/imports/Home/0180d31d32607011a14723c8c850b464f5c76f12.png"
 import imgRect9 from "@/imports/Home/d6ddb872a3bb560570256771d1a4982aad7b85b9.png"
 
-const FALLBACK_ITEMS = [
+type DisplayItem = { title: string; date: string; img: string }
+
+const FALLBACK_ITEMS: DisplayItem[] = [
   { title: "WENDYKURK / SOFT MEAT", date: "10 June, 2026", img: imgRect2 },
   { title: "FELVIDEK", date: "8 June, 2026", img: imgRect4 },
   { title: "MAUVAIS SANG 1986 / LEOS CARAX", date: "9 June, 2026", img: imgRect6 },
@@ -22,7 +24,7 @@ const FALLBACK_ITEMS = [
   { title: "THE MYRIAD FORM / THE MYRIAD FORM", date: "30 January, 2026", img: imgRect9 },
 ]
 
-type DisplayItem = { title: string; date: string; img: string }
+const fallbackMap = new Map(FALLBACK_ITEMS.map((i) => [i.title, i.img]))
 
 export function ArchiveGrid() {
   const gridRef = useRef<HTMLDivElement>(null)
@@ -37,7 +39,11 @@ export function ArchiveGrid() {
           .select("title, date, image_url")
           .order("position", { ascending: true })
         if (!error && data && data.length > 0) {
-          setItems(data.map((e) => ({ title: e.title, date: e.date || "", img: e.image_url || "" })))
+          setItems(data.map((e) => ({
+            title: e.title,
+            date: e.date || "",
+            img: e.image_url || fallbackMap.get(e.title) || "",
+          })))
         }
       } catch {}
     }
