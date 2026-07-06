@@ -5,12 +5,12 @@ export function Header() {
         MORPHEUS (ARCHIVE)*
       </h1>
       <div className="flex flex-col sm:flex-row gap-4 sm:gap-12">
-        <p className="text-[11px] text-black/50 max-w-[300px] leading-relaxed font-light font-['Intel_One_Mono',monospace]">
+        <p className="text-[11px] text-black/50 max-w-[220px] leading-relaxed font-light font-['Intel_One_Mono',monospace]">
+          My personal corner on the internet, a place for anything that felt worth keeping
+        </p>
+        <p className="text-[11px] text-black/50 max-w-[300px] leading-relaxed font-light font-['Intel_One_Mono',monospace] sm:ml-auto">
           The Archive (Morpheus)
           <br />A space where fragments of taste, memory, and obsession coexist
-        </p>
-        <p className="text-[11px] text-black/50 max-w-[220px] leading-relaxed font-light font-['Intel_One_Mono',monospace] sm:ml-auto">
-          My personal corner on the internet, a place for anything that felt worth keeping
         </p>
       </div>
     </header>
