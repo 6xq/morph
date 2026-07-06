@@ -26,29 +26,71 @@ const FALLBACK_ITEMS: DisplayItem[] = [
 
 const fallbackMap = new Map(FALLBACK_ITEMS.map((i) => [i.title, i.img]))
 
+const PAGE_SIZE = 8
+
 export function ArchiveGrid() {
   const gridRef = useRef<HTMLDivElement>(null)
   const [items, setItems] = useState<DisplayItem[]>(FALLBACK_ITEMS)
+  const [page, setPage] = useState(0)
+  const [hasMore, setHasMore] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     async function load() {
       try {
         const sb = requireSupabase()
+        const { count } = await sb
+          .from("archive_entries")
+          .select("*", { count: "exact", head: true })
+        const total = count ?? 0
+        setHasMore(total > PAGE_SIZE)
+
         const { data, error } = await sb
           .from("archive_entries")
           .select("title, date, image_url")
           .order("position", { ascending: true })
+          .range(0, PAGE_SIZE - 1)
         if (!error && data && data.length > 0) {
           setItems(data.map((e) => ({
             title: e.title,
             date: e.date || "",
             img: e.image_url || fallbackMap.get(e.title) || "",
           })))
+          setPage(1)
         }
       } catch {}
     }
     load()
   }, [])
+
+  async function loadMore() {
+    setLoading(true)
+    try {
+      const sb = requireSupabase()
+      const from = page * PAGE_SIZE
+      const to = from + PAGE_SIZE - 1
+      const { data, error } = await sb
+        .from("archive_entries")
+        .select("title, date, image_url")
+        .order("position", { ascending: true })
+        .range(from, to)
+      if (!error && data && data.length > 0) {
+        setItems((prev) => [
+          ...prev,
+          ...data.map((e) => ({
+            title: e.title,
+            date: e.date || "",
+            img: e.image_url || fallbackMap.get(e.title) || "",
+          })),
+        ])
+        setPage((p) => p + 1)
+        if (data.length < PAGE_SIZE) setHasMore(false)
+      } else {
+        setHasMore(false)
+      }
+    } catch {}
+    setLoading(false)
+  }
 
   useEffect(() => {
     const cards = gridRef.current?.querySelectorAll(".archive-card")
@@ -73,11 +115,17 @@ export function ArchiveGrid() {
           </div>
         ))}
       </div>
-      <div className="flex justify-center mt-12">
-        <button className="bg-[#f1f1f1] text-black text-[13px] font-['Intel_One_Mono',monospace] px-6 py-3 rounded-full hover:bg-[#e4e4e4] transition-colors">
-          Load More
-        </button>
-      </div>
+      {hasMore && (
+        <div className="flex justify-center mt-12">
+          <button
+            onClick={loadMore}
+            disabled={loading}
+            className="bg-[#f1f1f1] text-black text-[13px] font-['Intel_One_Mono',monospace] px-6 py-3 rounded-full hover:bg-[#e4e4e4] disabled:opacity-50 transition-colors"
+          >
+            {loading ? "Loading..." : "Load More"}
+          </button>
+        </div>
+      )}
     </section>
   )
 }
