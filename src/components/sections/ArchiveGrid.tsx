@@ -48,7 +48,7 @@ export function ArchiveGrid() {
         const { data, error } = await sb
           .from("archive_entries")
           .select("title, date, image_url")
-          .order("position", { ascending: true })
+          .order("created_at", { ascending: false })
           .range(0, PAGE_SIZE - 1)
         if (!error && data && data.length > 0) {
           setItems(data.map((e) => ({
@@ -72,7 +72,7 @@ export function ArchiveGrid() {
       const { data, error } = await sb
         .from("archive_entries")
         .select("title, date, image_url")
-        .order("position", { ascending: true })
+        .order("created_at", { ascending: false })
         .range(from, to)
       if (!error && data && data.length > 0) {
         setItems((prev) => [
